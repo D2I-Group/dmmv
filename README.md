@@ -93,7 +93,7 @@ Figure 2 presents the ranking of DMMV and other baselines in terms of MSE and MA
 </div>
 
 <p align="center">
-    <img src="./image/table.png" alt="table2" width="90%">
+    <img src="./image/table2.png" alt="table2" width="90%">
 </p>
 
 
