@@ -34,7 +34,6 @@ Both variants share the following core components:
 - **Fusion Gate**: An adaptive gating mechanism that integrates the outputs from both views, balancing trend and periodic information to produce the final forecast.
 
 
-
 <div align="center">
 
 |[<img src="./image/model_framework.png" width=90%/>](./image/model_framework.png)|
@@ -69,12 +68,13 @@ Both variants share the following core components:
     - You can obtain the well pre-processed datasets from [Google Drive](https://drive.google.com/drive/folders/1vE0ONyqPlym2JaaAoEe0XNDR8FS_d322) provided by [Time-Series-Library](https://github.com/thuml/Time-Series-Library).
     - Then place the downloaded data in the folder `./dataset`. 
     - Here is a summary of supported datasets.
+
     <p align="center">
-    <img src="./image/table1.png" alt="table1" width="90%">
+        <img src="./image/table1.png" alt="table1" width="90%">
     </p>
 
 4. **Run the Code**
-    - Make sure the environment, setting is correct.
+    - Make sure the environment and settings are correctly configured.
     - Run `bash scripts/DMMV-A/ETTh1.sh` to start.
 
 
@@ -107,7 +107,6 @@ Figure 2 presents the ranking of DMMV and other baselines in terms of MSE and MA
       year={2025},
 }
 ```
-
-## 📧 Contract
+## 📧 Contact
 
 If you have any questions or concerns, please contact us: cshen9 [at] uh [dot] edu or submit an issue
