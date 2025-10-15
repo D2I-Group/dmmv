@@ -18,34 +18,34 @@
 ## 🔍About
 
 This is the official repository for NeurIPS 2025 paper "[Multi-Modal View Enhanced Large Vision Models for Long-Term Time Series Forecasting](https://arxiv.org/abs/2505.24003)". This paper proposes DMMV, a novel decomposition-based multi-modal
-view framework that leverages trend-seasonal decomposition and a novel backcast-residual based adaptive decomposition to integrate MMVs for LTSF.
+view (MMV) framework that leverages trend-seasonal decomposition and a novel backcast-residual based adaptive decomposition to integrate MMVs of time series and large vision models (LVMs) for long-term time series forecasting (LTSF).
 
 ### 🔧Framework
 
-Traditional time series forecasting models often rely on a single view (e.g., numerical, language, visual), overlooking the complementary information that can be integrated across different modalities. The Decomposition-based Multi-Modal View (DMMV) framework addresses this limitation by jointly modeling the numerical and visual perspectives of time series within a unified and lightweight architecture.
+Traditional time series forecasting models often rely on a single view (e.g., numerical, language, visual), overlooking the complementary information that can be integrated across different modalities. The proposed Decomposition-based Multi-Modal View (DMMV) framework addresses this limitation by jointly modeling the numerical and visual views of time series within a unified architecture.
 
 As illustrated in Figure 1, DMMV consists of two variants, DMMV-S and DMMV-A.
 - **DMMV-S**: Uses a moving-average kernel to decompose the series into seasonal and trend parts, processed by the Visual and Numerical Forecasters, respectively.
-- **DMMV-A**: Leverages the Visual Forecaster for both forecasting and backcasting to reconstruct seasonal components, while the Numerical Forecaster models the residual trend.
+- **DMMV-A**: Leverages the Visual Forecaster for both forecasting and backcasting to reconstruct seasonal components, while adaptively using the Numerical Forecaster to model the residual trend component.
 
 Both variants share the following core components:
-- **Visual Forecaster**: Utilizes a pre-trained Large Vision Model (LVM) to reconstruct the masked regions of input images, effectively capturing periodic and local patterns.
-- **Numerical Forecaster**: A general series-to-series predictor that models global trends. It can be implemented as a simple linear layer or a Transformer-based numerical forecaster such as PatchTST.
-- **Fusion Gate**: An adaptive gating mechanism that integrates the outputs from both views, balancing trend and periodic information to produce the final forecast.
+- **Visual Forecaster**: Utilizes a pre-trained LVM to reconstruct the masked regions of input imaged time series, effectively capturing periodic and local patterns.
+- **Numerical Forecaster**: A general series-to-series predictor that models global trends. It can be implemented as a linear-layer or Transformer-based forecaster that reads the numerical view of time series.
+- **Fusion Gate**: An adaptive gating mechanism that integrates the outputs from both forecasters, balancing trend and periodic information to produce the final forecast.
 
 
 <div align="center">
 
 |[<img src="./image/model_framework.png" width=90%/>](./image/model_framework.png)|
 |:--:|
-|Figure 1: An overview of DMMV framework. (a) DMMV-S uses moving-average to extract trend and seasonal components. (b) DMMV-A uses a backcast-residual decomposition to learn trend and seasonal components.|
+|Figure 1: An overview of DMMV framework. (a) DMMV-S uses moving-average to extract trend and seasonal components. (b) DMMV-A uses a backcast-residual decomposition to automatically learn trend and seasonal components. In (b), the gray blocks are gray-scale images. "?" marks masks.|
 </div>
 
 
 ### 🔑 Key Features
 
-- **Multi-Modal Integration**: Jointly models numerical and visual views to capture both trends and seasonal periodic patterns.
-- **Decomposition**: Introduces a novel moving-average and adaptive backcast–residual decomposition aligned with LVMs’ inductive bias.
+- **Multi-Modal Integration**: Jointly models numerical and visual views of time series while making use of the strengths of LVM forecasters and numerical forecasters.
+- **Decomposition**: Introduces a novel adaptive backcast–residual decomposition framework that can harness LVMs’ inductive biases.
 - **Modular Compatibility**: Supports various LVMs (e.g., MAE, SimMIM) and numerical forecasters (e.g., Linear, PatchTST) for flexible deployment.
 
 ## 🚀 Quick Start
@@ -67,7 +67,7 @@ Both variants share the following core components:
 3. **Download the datasets**
     - You can obtain the well pre-processed datasets from [Google Drive](https://drive.google.com/drive/folders/1vE0ONyqPlym2JaaAoEe0XNDR8FS_d322) provided by [Time-Series-Library](https://github.com/thuml/Time-Series-Library).
     - Then place the downloaded data in the folder `./dataset`. 
-    - Here is a summary of supported datasets.
+    - Here is a summary of the benchmark datasets.
 
     <p align="center">
         <img src="./image/table1.png" alt="table1" width="90%">
@@ -81,15 +81,15 @@ Both variants share the following core components:
 
 ## 📊 Evaluation
 
-DMMV is comprehensively evaluated against 14 state-of-the-art (SOTA) models across diverse domains, covering a wide spectrum of time series forecasting architectures, including LLM-, LVM-, VLM-, Transformer-, and CNN-based approaches. Experiments are conducted on eight widely used benchmark datasets, where DMMV achieves the best mean squared error (MSE) on 6 out of 8 datasets.
-Figure 2 presents the ranking of DMMV and other baselines in terms of MSE and MAE, further demonstrating the overall superiority of the proposed framework.
+DMMV is comprehensively compared with 14 state-of-the-art (SOTA) models on 8 benchmark datasets across domains. The baseline methods cover different time series forecasting models, including LLM-, LVM-, VLM-, Transformer-, CNN-, and MLP-based methods. DMMV achieves the best mean squared error (MSE) on 6 out of 8 datasets.
+Figure 2 presents the ranking of DMMV and the baseline methods in terms of MSE and mean absolute error (MAE), providing an overview of DMMV's performance.
 
 
 <div align="center">
 
 |[<img src="./image/rank.png" width=90%/>](./image/rank.png)|
 |:--:|
-|Figure 2: Critical difference (CD) diagram on the average rank of all 16 compared methods in terms of (a) MSE and (b) MAE over all benchmark datasets. The lower rank (left of the scale) is better|
+|Figure 2: Critical difference (CD) diagram on the average rank of all 16 compared methods in terms of (a) MSE and (b) MAE over all benchmark datasets. The lower rank (left of the scale) is better.|
 </div>
 
 <p align="center">
