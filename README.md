@@ -8,6 +8,17 @@
 [![Python: 3.11](https://img.shields.io/badge/Python-3.11-blue)]()
 </div>
 
+<div align="center">
+
+**[<a href="https://mp.weixin.qq.com/s/Yu1uE-xxGTbER7oQVtX2Fw">时序人</a>]**
+**[<a href="https://mp.weixin.qq.com/s/gld2cZam7GyAY3PlEh7P0w">时空探索之旅</a>]**
+**[<a href="https://mp.weixin.qq.com/s/mB2UtxhPWnFomIkr5Ozf2A">QuantML</a>]**
+**[<a href="https://mp.weixin.qq.com/s/pRGQxicQnBEEAUCHEuSeVA">时序之心</a>]**
+**[<a href="https://mp.weixin.qq.com/s/sk8K_M7nKCYdZNhQ1EGHMQ">时序大模型</a>]**
+
+</div>
+
+<p align="center">
 <p align="center">
     🔍&nbsp;<a href="#about">About</a>
     | 🚀&nbsp;<a href="#quick-start">Quick Start</a>
