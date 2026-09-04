@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DMMV — Multi-Modal View Enhanced Large Vision Models for Long-Term Time Series Forecasting</title>
+<meta name="description" content="DMMV (NeurIPS 2025) is a decomposition-based multi-modal view framework that harnesses the inductive bias of large vision models toward forecasting periods, achieving the best MSE on 6 of 8 long-term forecasting benchmarks.">
+<meta name="author" content="ChengAo Shen, Wenchao Yu, Ziming Zhao, Dongjin Song, Wei Cheng, Haifeng Chen, Jingchao Ni">
+<meta name="keywords" content="long-term time series forecasting, large vision models, multi-modal views, masked autoencoder, backcast-residual decomposition, NeurIPS 2025, DMMV">
+<link rel="canonical" href="https://d2i-group.github.io/dmmv/">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://d2i-group.github.io/dmmv/">
+<meta property="og:title" content="DMMV: Multi-Modal View Enhanced Large Vision Models for Long-Term Time Series Forecasting">
+<meta property="og:description" content="NeurIPS 2025 — trend-seasonal and backcast-residual decomposition let a large vision model do what it is biased to do, and a numerical forecaster do the rest.">
+<meta property="og:image" content="https://d2i-group.github.io/dmmv/assets/fig1.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DMMV (NeurIPS 2025)">
+<meta name="twitter:description" content="A decomposition-based multi-modal view framework that integrates numerical and visual views for long-term time series forecasting.">
+<meta name="twitter:image" content="https://d2i-group.github.io/dmmv/assets/fig1.png">
+
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f6f5f1'/><path d='M16 68 L34 42 L50 58 L66 26 L84 50' fill='none' stroke='%23c8102e' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&family=Noto+Sans+SC:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="static/css/style.css">
+
+<script>
+  (function () {
+    var t = localStorage.getItem("mc-theme");
+    document.documentElement.setAttribute(
+      "data-theme", t || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+    var l = localStorage.getItem("mc-lang") || "en";
+    document.documentElement.setAttribute("data-lang", l);
+    if (l === "zh") document.documentElement.setAttribute("lang", "zh-CN");
+  })();
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  "name": "Multi-Modal View Enhanced Large Vision Models for Long-Term Time Series Forecasting",
+  "author": [
+    {"@type":"Person","name":"ChengAo Shen"}, {"@type":"Person","name":"Wenchao Yu"},
+    {"@type":"Person","name":"Ziming Zhao"},  {"@type":"Person","name":"Dongjin Song"},
+    {"@type":"Person","name":"Wei Cheng"},    {"@type":"Person","name":"Haifeng Chen"},
+    {"@type":"Person","name":"Jingchao Ni"}
+  ],
+  "url": "https://d2i-group.github.io/dmmv/",
+  "sameAs": "https://arxiv.org/abs/2505.24003"
+}
+</script>
+</head>
+
+<body>
+
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a class="wordmark" href="#top">DMMV</a>
+    <div class="nav-links">
+      <a href="#overview" data-zh="概览">Overview</a>
+      <a href="#bias" data-zh="归纳偏置">Bias</a>
+      <a href="#method" data-zh="方法">Method</a>
+      <a href="#results" data-zh="结果">Results</a>
+      <a href="#analysis" data-zh="分析">Analysis</a>
+      <a href="#cite" data-zh="引用">Cite</a>
+    </div>
+    <div class="nav-tools">
+      <button class="lang-btn" id="lang-toggle" aria-label="Switch language">
+        <span class="lang-en">中文</span><span class="lang-zh">EN</span>
+      </button>
+      <button class="theme-btn" id="theme-toggle" aria-label="Switch colour theme">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button class="menu-btn" id="menu-toggle" aria-label="Sections" aria-expanded="false">
+        <svg class="icon-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="tags">
+    <span class="tag accent">NeurIPS 2025</span>
+    <span class="tag" data-zh="长期时间序列预测">Long-Term Time Series Forecasting</span>
+    <span class="tag" data-zh="大型视觉模型">Large Vision Models</span>
+    <span class="tag" data-zh="多模态视图">Multi-Modal Views</span>
+  </div>
+
+  <h1>DMMV</h1>
+  <p class="standfirst" data-zh="面向长期时间序列预测的<br class=&quot;lb&quot;>多模态视图增强大型视觉模型">
+    Multi-Modal View Enhanced Large Vision Models<br class="lb">
+    for Long-Term Time Series Forecasting
+  </p>
+
+  <p class="people">
+    <a href="https://chengaoshen.com/">ChengAo Shen</a><sup>1</sup>,
+    <a href="https://www.nec-labs.com/research/data-science-system-security/people/wenchao-yu/">Wenchao Yu</a><sup>2</sup>,
+    Ziming Zhao<sup>1</sup>,
+    <a href="https://songdj.github.io/">Dongjin Song</a><sup>3</sup>,
+    <a href="https://sites.google.com/site/weichengunc/welcome-to-wei-chengs-homepage">Wei Cheng</a><sup>2</sup>,
+    <a href="https://www.nec-labs.com/research/data-science-system-security/people/haifeng-chen/">Haifeng Chen</a><sup>2</sup>,
+    <a href="https://nijingchao.github.io/">Jingchao Ni</a><sup>1</sup>
+  </p>
+  <p class="places" data-zh="<sup>1</sup>休斯敦大学 &nbsp; <sup>2</sup>NEC 美国实验室 &nbsp; <sup>3</sup>康涅狄格大学">
+    <sup>1</sup>University of Houston &nbsp; <sup>2</sup>NEC Laboratories America &nbsp;
+    <sup>3</sup>University of Connecticut
+  </p>
+
+  <div class="actions">
+    <a class="btn primary" href="https://arxiv.org/pdf/2505.24003">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      <span data-zh="论文">Paper</span>
+    </a>
+    <a class="btn" href="https://arxiv.org/abs/2505.24003">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      arXiv
+    </a>
+    <a class="btn" href="https://github.com/D2I-Group/dmmv">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.73.5.5 5.73.5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.82 1.19 1.85 1.19 3.11 0 4.43-2.7 5.41-5.27 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+      <span data-zh="代码">Code</span>
+    </a>
+    <a class="btn" href="#cite">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h4v6a4 4 0 0 1-4 4M15 7h4v6a4 4 0 0 1-4 4"/></svg>
+      BibTeX
+    </a>
+  </div>
+
+  <a class="scroll-cue" href="#overview" aria-label="Scroll to the overview">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+  </a>
+</header>
+
+<section class="band" id="overview">
+  <div class="band-inner">
+    <div class="band-label" data-zh="概览">Overview</div>
+    <div class="band-body">
+      <h2 data-zh="同一条信号，几种看法">One signal, several views of it</h2>
+
+      <div class="prose">
+        <p data-zh="时间序列通常表示为数值序列，但也可以被转换为图像与文本，从而给出同一条底层信号的<strong>多模态视图</strong>。这些多模态视图能够揭示互补的模式，并使得诸如大型视觉模型这类强大的预训练大模型可以被用于长期时间序列预测。">
+          Time series, typically represented as numerical sequences, can also be transformed into
+          images and texts, offering <strong>multi-modal views</strong> (MMVs) of the same underlying
+          signal. These MMVs can reveal complementary patterns and enable the use of powerful
+          pre-trained large models, such as large vision models (LVMs), for long-term time series
+          forecasting (LTSF).
+        </p>
+        <p data-zh="然而，正如本工作所发现的，当前最先进的基于大型视觉模型的预测器带有一种指向“预测周期”的归纳偏置。为了驾驭这一偏置，我们提出 <strong>DMMV</strong>——一个新颖的、基于分解的多模态视图框架，它借助趋势‑季节分解以及一种新颖的基于回溯残差的自适应分解来整合多模态视图，用于长期时间序列预测。">
+          However, as we identified in this work, the state-of-the-art LVM-based forecaster poses an
+          inductive bias towards “forecasting periods”. To harness this bias, we propose
+          <strong>DMMV</strong>, a novel decomposition-based multi-modal view framework that leverages
+          trend-seasonal decomposition and a novel backcast-residual based adaptive decomposition to
+          integrate MMVs for LTSF.
+        </p>
+        <p data-zh="与 14 个最先进模型在多个数据集上的对比评测表明，DMMV 优于单视图基线与已有的多模态基线，在 8 个基准数据集中的 6 个上取得了最优的均方误差。">
+          Comparative evaluations against 14 SOTA models across diverse datasets show that DMMV
+          outperforms single-view and existing multi-modal baselines, achieving the best mean squared
+          error (MSE) on 6 out of 8 benchmark datasets.
+        </p>
+        <p data-zh="利用多模态视图带来两点关键好处：其一，用其他视图来增强时间序列，可以揭示在原始数值数据中并不明显的模式；其二，预训练大模型能够抽取某些视图所特有的复杂模式，例如视觉表征。DMMV 在一个紧凑的架构中整合了数值视图与视觉视图；我们排除了文本视图，因为它在 Time-VLM 中收益有限，且近期研究对大语言模型用于长期预测的有效性与成本效益提出了质疑。">
+          Leveraging MMVs offers two key advantages: augmenting time series with alternative views can
+          reveal patterns not evident in the original numerical data, and pre-trained large models can
+          extract complex patterns specific to certain views, such as visual representations. DMMV
+          integrates numerical and visual views in a compact architecture. We exclude the textual view
+          due to its marginal gains in <code>Time-VLM</code> and recent doubts about the effectiveness
+          and cost-efficiency of LLMs for LTSF.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section class="band" id="bias">
+  <div class="band-inner">
+    <div class="band-label" data-zh="归纳偏置">Inductive bias</div>
+    <div class="band-body">
+      <h2 data-zh="一个总想把周期重复下去的预测器">A forecaster that wants to repeat the period</h2>
+
+      <div class="prose">
+        <p data-zh="掩码自编码器（MAE）通过在 ImageNet 数据集上重建被掩码的图像块进行自监督预训练。为将其适配到长期预测，VisionTS 采用了 TimesNet 引入的基于周期的成像技术：长度为 T 的单变量序列被切分为 ⌊T/P⌋ 段长度为 P 的子序列，其中 P 取该序列的周期，可由快速傅里叶变换得到，或由采样频率的先验知识给出。这些子序列被堆叠成一幅二维图像；经标准差归一化后复制 3 次形成灰度图，再经双线性插值缩放为 224 × 224 × 3 的图像，以满足 MAE 的输入要求。预测是通过重建图像右侧追加的掩码区域来完成的，该区域对应序列未来的预测步长。">
+          Masked autoencoder (<code>MAE</code>) is pre-trained self-supervisedly by reconstructing
+          masked image patches using the ImageNet dataset. To adapt it to LTSF, <code>VisionTS</code>
+          adopts a period-based imaging technique introduced by <code>TimesNet</code>: each length-T
+          univariate series is segmented into ⌊T/P⌋ subsequences of length P, where P is set to be the
+          period of the series, which can be obtained using the Fast Fourier Transform or from prior
+          knowledge on sampling frequency. The subsequences are stacked to form a 2D image. After
+          standard-deviation normalization, it is duplicated 3 times to form a gray image, followed by
+          a bilinear interpolation to resize it to an image of size 224 × 224 × 3 to fit the input
+          requirement of <code>MAE</code>. The forecast is achieved by reconstructing a right-appended
+          masked area of that image, corresponding to the future horizon of the series.
+        </p>
+        <p data-zh="由于基于周期的成像方式，以及 MAE 在像素推断时所强制的空间一致性，VisionTS 表现出对<strong>周期间一致性</strong>的强烈偏好，常常盖过全局趋势。下图展示了 VisionTS 在一条周期为 24 的合成正弦时间序列上的预测：当分段长度 P 从 24 变到 48 时，预测在准确与不准确之间交替，随 P 从 1 倍周期移向 2 倍周期而变化，凸显出指向周期性的强烈归纳偏置。值得注意的是，这些预测并非简单的重复——周期内幅度的递减说明大型视觉模型仍能捕捉每个周期内部的局部趋势。">
+          Due to period-based imaging and the spatial consistency enforced during <code>MAE</code>'s
+          pixel inference, <code>VisionTS</code> exhibits a strong bias toward
+          <strong>inter-period consistency</strong>, often overshadowing the global trend. The panels
+          below illustrate <code>VisionTS</code>'s forecasts on a synthetic sinusoidal time series with
+          a period of 24. As the segment length P varies from 24 to 48, forecasts alternate between
+          accurate and inaccurate as P shifts from 1×period to 2×period, highlighting a strong
+          inductive bias toward periodicity. Notably, the forecasts aren't mere repetitions — the
+          decreasing intra-period amplitude indicates that LVMs can still capture local trends within
+          each period.
+        </p>
+      </div>
+
+      <figure>
+        <div class="plate">
+          <img src="assets/fig3.png" alt="Forecasts of an LVM forecaster on a synthetic sinusoid under four different segment lengths.">
+        </div>
+        <figcaption data-zh="大型视觉模型预测器归纳偏置的示意。该时间序列的周期为 24，竖直虚线标出分段点。这一例子表明：模型偏好 (a)(d) 中为周期整数倍的分段长度，胜过 (b)(c) 中的其他取值。">
+          An illustration of an LVM forecaster's inductive bias. The time series has a period of 24.
+          The vertical dashed lines mark the segment points. The example indicates a bias towards
+          segment lengths that are multiples of the period in (a) and (d) over other segment lengths
+          in (b) and (c).
+        </figcaption>
+      </figure>
+
+      <div class="prose">
+        <p data-zh="合成时间序列的函数为 x(t) = A(t) · sin(2πt / P)，其中周期 P 设为 24，幅度函数 A(t) 随时间线性递减。当分段长度是周期的整数倍时（例如 24、48），预测更为准确。下表中，除 24 与 48 之外的各个分段长度上 MSE 与 MAE 的波动，支持了关于指向“预测周期”的归纳偏置的发现。">
+          The function of the synthetic time series is x(t) = A(t) · sin(2πt / P), where the period P
+          is set to 24 and the amplitude function A(t) decreases linearly over time. The forecasts are
+          more accurate when the segment length is a multiple of the period (e.g., 24, 48) than other
+          values. In the table below, the fluctuations in MSEs and MAEs across different segment
+          lengths other than 24 and 48 support the findings of the inductive bias toward “forecasting
+          periods”.
+        </p>
+      </div>
+
+      <div>
+        <div class="tablewrap">
+          <table class="data" id="segment-table"><thead></thead><tbody></tbody></table>
+        </div>
+        <p class="note" data-zh="大型视觉模型预测器在合成数据集上随分段长度变化的预测性能。MSE 与 MAE 越低越好。">
+          Forecasting performance of an LVM with respect to varying segment length on the synthetic
+          dataset. Lower MSE and MAE are better.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="method">
+  <div class="band-inner">
+    <div class="band-label" data-zh="方法">Method</div>
+    <div class="band-body">
+      <h2 data-zh="两个预测器，两种分解">Two forecasters, two ways to split the signal</h2>
+
+      <div class="run-in">
+        <p data-zh="受这一观察的启发，我们设计了 DMMV 框架，以利用大型视觉模型的归纳偏置，同时弥补其局限：视觉预测器（即大型视觉模型）专注于从视觉视图中捕捉周期模式，而数值预测器从数值视图中建模全局趋势，从而得到更为均衡的预测。">
+          Motivated by this observation, we design the DMMV framework to leverage the inductive bias of
+          LVMs while addressing their limitations. Specifically, the visual forecaster — the LVM —
+          focuses on capturing periodic patterns from the visual view, while the numerical forecaster
+          models global trends from the numerical view, resulting in more balanced forecasting.
+        </p>
+        <p data-zh="<b>DMMV-S</b> · 简单分解。它采用简单的移动平均分解，把输入时间序列显式地分解为趋势部分与季节（或周期）部分，分别反映序列的长期演进与季节性。移动平均使用长度为 2⌊P/2⌋ + 1 的核（即滑动窗口）提取频率低于序列采样频率的分量，从而凸显全局趋势，残差分量即为季节部分。视觉预测器把季节分量转换为一幅 224 × 224 × 3 的图像，并输出季节分量的预测。">
+          <b>DMMV-S</b> simple decomposition. It adopts a simple moving-average decomposition, which
+          explicitly decomposes an input time series into a trend part and a seasonal (or periodic)
+          part, reflecting the long-term progression and the seasonality of the series, respectively.
+          Moving-average uses a kernel — a sliding window — of length 2⌊P/2⌋ + 1 to extract the
+          component with frequency lower than the series' sampling frequency, highlighting the global
+          trend; the residual component is the seasonal part. The visual forecaster transforms the
+          seasonal input into a 224 × 224 × 3 image and outputs the forecast for the seasonal
+          component.
+        </p>
+        <p data-zh="<b>数值预测器</b> · 对于数值预测器，我们不施加专门的归纳偏置，而是采用能够捕捉长期依赖的通用架构。我们考察了两种可行选项，其余留作未来工作：其一是简单的线性模型，其动机来自线性方法在长期预测中已被证实的有效性；其二是受 PatchTST 启发的基于 Transformer 的模型，它把趋势序列切成 N 个长度为 L 的片段，用投影权重与可学习位置编码映射为嵌入，再经 Transformer、展平与线性层得到趋势部分的预测。">
+          <b>The numerical forecaster</b> rather than imposing a specialized inductive bias, we adopt a
+          general-purpose architecture capable of capturing long-term dependencies. We investigate the
+          feasibility of two options and leave other explorations as a future work: a simple linear
+          model motivated by the proven effectiveness of linear methods in LTSF, and a
+          Transformer-based model inspired by <code>PatchTST</code>, which segments the trend into N
+          length-L patches, projects them to embeddings with a learnable positional encoding, and
+          passes the Transformer output through flatten and linear operators to achieve the forecast
+          for the trend part.
+        </p>
+        <p data-zh="<b>门控融合</b> · 最后，季节预测与趋势预测被合并，得到该变量的整体预测。特别地，我们没有采用常规的求和式合并，而是设计了一个自适应的合并函数，配有轻量的门 g = sigmoid(w<sub>g</sub>) ∈ [0, 1]，其中 w<sub>g</sub> 是可学习的标量参数。DMMV 通过这一门控机制采用后期融合，因为中间层（例如嵌入层）的融合会让 MAE 的解码器得不到充分利用，而该解码器在像素预测中起着关键作用。">
+          <b>Gated late fusion</b> finally, the seasonal and trend forecasts are merged to produce the
+          overall forecast for the variate. In particular, instead of using the regular
+          summation-based merge, we design an adaptive merge function with a light-weight gate
+          g = sigmoid(w<sub>g</sub>) ∈ [0, 1], where w<sub>g</sub> is a learnable scalar parameter.
+          DMMV employs late fusion via this gating mechanism, as intermediate fusion — at the
+          embedding level, say — underutilizes <code>MAE</code>'s decoder, which plays a crucial role
+          in pixel prediction.
+        </p>
+        <p data-zh="<b>DMMV-A</b> · 自适应分解。DMMV-S 的一个局限在于施加在输入上的显式趋势‑季节分解，它迫使数值预测器与视觉预测器去拟合由某个固定核尺寸提取出的<strong>预先定义的分量</strong>；这并不灵活，也可能无法充分释放大型视觉模型的潜力。与之不同，DMMV-A 隐式地把输入分解为分别契合数值预测器与视觉预测器所长的趋势分量与季节分量。这是通过一种回溯残差机制实现的，该机制利用了大型视觉模型对周期模式的偏置：输入先由基于周期的成像转换为图像；在预测之前，视觉预测器通过重建该图像被掩码的片段来回溯（backcast）回看窗口。">
+          <b>DMMV-A</b> adaptive decomposition. One limitation of DMMV-S is the explicit trend-seasonal
+          decomposition placed on the input, which will enforce the numerical and visual forecasters to
+          fit <strong>pre-defined components</strong> extracted by a certain kernel size. This is not
+          flexible and may not fully leverage LVMs' potential. Unlike DMMV-S, DMMV-A implicitly
+          decomposes the input into trend and seasonal components tailored to the strengths of the
+          numerical and visual forecasters, respectively. This is achieved via a backcast-residual
+          mechanism that leverages LVMs' bias toward periodic patterns. The input is first transformed
+          into an image using period-based imaging. Before forecasting, the visual forecaster is used
+          to backcast the look-back window by reconstructing masked segments of that image.
+        </p>
+        <p data-zh="<b>BCMask</b> · 一个有效的掩码策略必须满足三点：能够重建整个回看窗口；与预测的设定保持一致；尽量少地调用视觉预测器，以避免计算开销。为满足这三条标准，我们提出高效的回溯掩码（BCMask）策略，它执行两次前向：分别掩码并重建图像的左半与右半。BCMask 同时满足三条标准：它能完成图像的完整重建；它用连续的片段去预测相邻的片段，与预测过程如出一辙；它把视觉预测器的调用降到最少——只需两次，因为图像中一些未被掩码的区域是预测所必需的，之后又必须被掩码才能完成完整重建。">
+          <b>BCMask</b> an effective masking strategy must enable full-window reconstruction, align
+          with the forecasting setup, and minimize the usage of the visual forecaster to avoid
+          computational overhead. To meet these criteria, we propose an efficient BackCast-Masking
+          (BCMask) strategy, which applies two passes: masking and reconstructing the left and right
+          halves of the image, respectively. BCMask satisfies all three criteria: it enables full
+          reconstruction of the image; it uses contiguous segments to predict adjacent segments,
+          mirroring the forecasting process; and it minimizes the use of the visual forecaster — only
+          two passes are needed, as some unmasked regions of the image are required for prediction and
+          must later be masked to complete the full reconstruction.
+        </p>
+        <p data-zh="<b>残差即趋势</b> · 值得注意的是，回溯得到的图像偏向输入图像中的周期模式。经过反归一化与逆变换后，可以恢复出一条回溯时间序列，它反映了输入中的周期分量；因此残差（输入减去回溯）强调的是趋势。我们把该残差送入数值预测器得到趋势预测，同时视觉预测器从输入图像出发给出季节分量的预测，二者再由同样的门控机制融合。与 N-BEATS 中仅用于抽取预测误差的回溯不同，我们的做法是专门为利用大型视觉模型对周期模式的偏置而设计的，因而有着根本的差别。">
+          <b>The residual is the trend</b> notably, the backcast image is biased toward the periodic
+          patterns in the input image. After de-normalization and reverse transformation, a backcast
+          time series is recovered, reflecting the periodic component in the input; the residual —
+          input minus backcast — therefore emphasizes the trend. We feed this residual into the
+          numerical forecaster to produce the trend forecast, while the visual forecaster predicts from
+          the input image, likely yielding the forecast of the seasonal component; the two are fused
+          via the same gating mechanism. Unlike the backcast in <code>N-BEATS</code> — designed merely
+          to extract predictive errors — our approach is specifically tailored to exploit LVMs' bias
+          toward periodic patterns, making it fundamentally different.
+        </p>
+        <p data-zh="<b>优化</b> · DMMV 通过最小化预测与真值之间的 MSE 进行训练。数值预测器从零开始训练，而视觉预测器使用预训练的大型视觉模型权重并进行部分微调；我们发现只微调归一化层的效果最好。在大型视觉模型的选择上，我们测试了 MAE 与 SimMIM，两者都是自监督预训练的；MAE 表现更好，被设为默认。训练先冻结视觉预测器、单独训练数值预测器若干轮（例如约 30 轮），随后解冻视觉预测器的归一化层，与数值预测器联合微调，直至收敛或早停。">
+          <b>Optimization</b> DMMV is trained by minimizing the MSE between the forecast and the ground
+          truth. The numerical forecaster is trained from scratch, while the visual forecaster uses
+          pre-trained LVM weights with partial fine-tuning. We find that fine-tuning only the
+          normalization layers yields the best performance. For the choice of LVM, we tested
+          <code>MAE</code> and <code>SimMIM</code>, both self-supervisedly pre-trained; <code>MAE</code>
+          performs better and is set as the default. Training begins with the visual forecaster frozen
+          while the numerical forecaster is trained for a number of epochs, around 30. Then the norm
+          layers of the visual forecaster are unfrozen and fine-tuned jointly with the numerical
+          forecaster until convergence or early stopping.
+        </p>
+      </div>
+
+
+      <div class="pair">
+        <figure style="--ar:2.4044">
+          <div class="plate">
+            <img src="assets/fig2.png" alt="An illustration of an LVM forecaster reconstructing a right-appended masked area.">
+          </div>
+          <figcaption data-zh="大型视觉模型预测器的示意。">
+            An illustration of an LVM forecaster.
+          </figcaption>
+        </figure>
+
+        <figure style="--ar:1.7097">
+          <div class="plate">
+            <img src="assets/fig4.png" alt="An illustration of BCMask, masking and reconstructing the left and right halves of the image.">
+          </div>
+          <figcaption data-zh="BCMask 的示意。">
+            An illustration of BCMask.
+          </figcaption>
+        </figure>
+      </div>
+
+      <figure>
+        <div class="plate">
+          <img src="assets/fig1.png" alt="An overview of the DMMV framework, showing the simple-decomposition and adaptive-decomposition variants.">
+        </div>
+        <figcaption data-zh="DMMV 框架总览。DMMV-S 用移动平均提取趋势与季节分量；DMMV-A 用回溯残差分解自动学习趋势与季节分量。在 DMMV-A 中，灰色方块为灰度图像，“?” 标记掩码。">
+          An overview of the DMMV framework. DMMV-S uses moving-average to extract trend and seasonal
+          components. DMMV-A uses a backcast-residual decomposition to automatically learn trend and
+          seasonal components. In DMMV-A, the gray blocks are gray-scale images; “?” marks masks.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="results">
+  <div class="band-inner">
+    <div class="band-label" data-zh="结果">Results</div>
+    <div class="band-body">
+      <h2 data-zh="8 个基准数据集中的 6 个取得最优 MSE">Best MSE on 6 of 8 benchmark datasets</h2>
+
+      <div class="prose">
+        <p data-zh="我们采用 8 个广泛使用的多变量基准：ETT（包括 ETTh1、ETTh2、ETTm1、ETTm2）、Weather、Illness、Traffic 与 Electricity。按照标准协议，我们把数据集按时间顺序切分为训练/验证/测试集，ETT 使用 60%/20%/20%，其余使用 70%/10%/20%。Illness 的预测步长为 {24, 36, 48, 60}，其余数据集为 {96, 192, 336, 720}；回看窗口默认取 336。评测沿用 MSE 与 MAE 两个指标。">
+          We adopt 8 widely used multivariate benchmarks: ETT — ETTh1, ETTh2, ETTm1, ETTm2 — together
+          with Weather, Illness, Traffic and Electricity. Following standard protocols, we split the
+          datasets chronologically into training/validation/test sets using a 60%/20%/20% ratio for ETT
+          and 70%/10%/20% for the others. The prediction horizon is set to {24, 36, 48, 60} for Illness
+          and {96, 192, 336, 720} for the remaining datasets. By default, the look-back window is 336.
+          We use Mean Squared Error and Mean Absolute Error to evaluate the LTSF performance of the
+          compared methods.
+        </p>
+        <p data-zh="下表汇总了 10 个代表性方法在四类范畴上的长期预测性能：基于多模态视图的、基于视觉视图的、基于语言视图的和基于数值视图的方法。Time-VLM 在 Illness 数据集上的结果未在其论文中报告，且实验进行时其代码尚不可获得，故以“—”标记。DMMV 报告的是更强的变体 DMMV-A。">
+          The table below summarizes the LTSF performance of 10 representative methods across four
+          categories: MMV-based, visual-view-based, language-view-based, and numerical-view-based
+          approaches. <code>Time-VLM</code>'s results on the Illness dataset are not reported in its
+          paper and its code is unavailable at the time of this experiment, thus are marked by “—”.
+          For DMMV, the stronger variant, DMMV-A, is reported.
+        </p>
+        <p data-zh="几点关键观察：多模态视图方法与视觉视图方法总体上优于语言视图方法，凸显了大型视觉模型的有效性，尤其是当它被置于多模态视图框架之中时；PatchTST、CycleNet 等数值视图模型依然很有竞争力，特别是在 VisionTS 表现欠佳的数据集上（例如 ETTm2 与 Electricity），说明它们有潜力与视觉模型互补；CycleNet 这一带可学习分解的轻量模型的强劲表现，说明在长期预测中把简洁与结构结合起来是有价值的；值得注意的是，通过新颖的自适应分解把视觉视图与数值视图统一起来的 DMMV-A，在多数情况下优于各基线，取得 43 个第一名，验证了其有效性；最后，VisionTS 在高度周期性的数据集上（例如 ETTh1、ETTm1、Traffic）表现良好，这源自 MAE 对周期性的归纳偏置，而 DMMV-A 缓解了这一偏置，从而给出更具泛化性的预测。">
+          Several key insights emerge: MMV and visual-view methods generally outperform language-view
+          methods, underscoring the effectiveness of LVMs, particularly when integrated within MMV
+          frameworks; numerical-view models such as <code>PatchTST</code> and <code>CycleNet</code>
+          remain competitive, especially on datasets where <code>VisionTS</code> underperforms — ETTm2
+          and Electricity — highlighting their potential to complement visual models; the strong
+          results of <code>CycleNet</code>, a lightweight model with learnable decomposition,
+          demonstrate the value of combining simplicity with structure in LTSF; notably, DMMV-A, which
+          unifies visual and numerical views through a novel adaptive decomposition, outperforms the
+          baselines in most cases, achieving 43 first-places and confirming its effectiveness; and
+          lastly, while <code>VisionTS</code> performs well on highly periodic datasets such as ETTh1,
+          ETTm1 and Traffic due to <code>MAE</code>'s inductive bias toward periodicity, DMMV-A
+          alleviates this bias, resulting in more generalizable forecasts.
+        </p>
+      </div>
+
+      <div>
+        <div class="controls">
+          <div class="ctl">
+            <span class="ctl-label" data-zh="数据集">Dataset</span>
+            <div class="choices" id="ds-seg">
+              <button data-d="all" aria-pressed="true" data-zh="全部（平均）">All (averages)</button>
+              <button data-d="ETTh1">ETTh1</button>
+              <button data-d="ETTh2">ETTh2</button>
+              <button data-d="ETTm1">ETTm1</button>
+              <button data-d="ETTm2">ETTm2</button>
+              <button data-d="Illness">Illness</button>
+              <button data-d="Electricity">Electricity</button>
+              <button data-d="Weather">Weather</button>
+              <button data-d="Traffic">Traffic</button>
+            </div>
+          </div>
+          <div class="ctl">
+            <span class="ctl-label" data-zh="指标">Metric</span>
+            <div class="choices" id="metric-seg">
+              <button data-m="all" aria-pressed="true" data-zh="两者">Both</button>
+              <button data-m="mse">MSE</button>
+              <button data-m="mae">MAE</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tablewrap">
+          <table class="data" id="main-table"><thead></thead><tbody></tbody></table>
+        </div>
+        <p class="note" data-zh="MSE 与 MAE 越低越好。视图类别：多模态——DMMV-A、Time-VLM；视觉——VisionTS；语言——GPT4TS、Time-LLM；数值——PatchTST、CycleNet、TimesNet、DLinear、FEDformer。“最优次数”统计的是全部 8 个数据集、全部预测步长与平均行上取得第一名的次数。由于采用标准评测协议，基线结果收集自已有工作；VisionTS 以回看窗口 336 重新运行，CycleNet 在 Illness 数据集上由其官方代码运行得到。">
+          Lower MSE and MAE are better. Views — <b>Multi-Modal</b>: DMMV-A, Time-VLM;
+          <b>Visual</b>: VisionTS; <b>Language</b>: GPT4TS, Time-LLM; <b>Numerical</b>: PatchTST,
+          CycleNet, TimesNet, DLinear, FEDformer. “# Wins” counts first places over all 8 datasets,
+          all prediction horizons and the average rows. As we use the standard evaluation protocol, we
+          collect baseline results from prior works; VisionTS is re-run with a look-back window of 336,
+          and CycleNet is run on the Illness dataset with its official code.
+        </p>
+      </div>
+
+      <figure>
+        <div class="plate">
+          <img src="assets/fig5.png" alt="Critical difference diagrams of the average MSE and MAE rank of all 16 compared methods.">
+        </div>
+        <figcaption data-zh="全部 16 个对比方法在所有基准数据集上按 MSE 与 MAE 的平均排名的临界差异图。排名越靠前（刻度左侧）越好。DMMV-S 在 MSE 上排名 4.5/16，在 MAE 上排名 7.1/16，凸显出 DMMV-A 所用自适应分解的收益；DMMV-S 与 CycleNet 相当的排名说明，即使只用更简单的固定分解，DMMV-S 也具备了一个带可学习分解的强基线所拥有的能力。">
+          Critical difference diagrams on the average rank of all 16 compared methods in terms of MSE
+          and MAE over all benchmark datasets. The lower rank, to the left of the scale, is better.
+          DMMV-S ranks 4.5/16 in MSE and 7.1/16 in MAE, underscoring the benefit of the adaptive
+          decomposition used in DMMV-A; DMMV-S's comparable ranks to CycleNet indicate that even with a
+          simpler, fixed decomposition, DMMV-S exhibits an ability that a strong SOTA model with
+          learnable decomposition has.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="analysis">
+  <div class="band-inner">
+    <div class="band-label" data-zh="分析">Analysis</div>
+    <div class="band-body">
+      <h2 data-zh="解码器、融合、掩码、训练与分解，缺一不可">Decoder, fusion, mask, training and decomposition all matter</h2>
+
+      <div class="prose">
+        <p data-zh="我们在四个数据集上通过消融实验验证 DMMV-A 的设计：(a) 把数值预测器中的线性模型换成 PatchTST 式的 Transformer；(b) 把视觉预测器中的 MAE 换成 SimMIM；(c) 把门控融合换成简单求和；(d) 去掉 BCMask，在完整、未掩码的回看窗口上做回溯与预测；(e) 用随机掩码替代 BCMask；(f) 冻结整个视觉预测器，而不微调其归一化层；(g) 去掉回溯残差机制，让数值预测器与视觉预测器接收同一份输入，再用门控融合其输出。">
+          We validate the design of DMMV-A through ablation studies on four datasets: (a) replaces the
+          linear model in the numerical forecaster with a <code>PatchTST</code>-style Transformer;
+          (b) swaps <code>MAE</code> with <code>SimMIM</code> as the visual forecaster; (c) replaces
+          the gating fusion with a simple sum; (d) removes BCMask, performing backcasting and
+          forecasting on the full, unmasked look-back window; (e) substitutes BCMask with random
+          masking; (f) freezes the entire visual forecaster instead of fine-tuning norm layers; and
+          (g) removes the backcast-residual mechanism, feeding both forecasters the same input and
+          merging their outputs via gating.
+        </p>
+        <p data-zh="在 (a) 中，用 Transformer 替换线性数值预测器略微降低了性能，可能是因为把 Transformer 与大型视觉模型联合训练更为困难。在 (b) 中，MAE 作为视觉预测器优于 SimMIM，可能是因为其基于 ViT 的重建解码器比 SimMIM 的线性解码器更适合长期预测这类像素级任务，而两者的编码器架构相近。在 (c) 中，基于门的融合优于简单求和，凸显其对数值预测器与视觉预测器差异化输出的适应能力。(d) 与 (e) 强调了 BCMask 的重要性：去掉它会把整个回看窗口恢复为回溯出的季节分量，削弱趋势信号，也削弱了数值预测器；而“随机掩码”表现略差，因为周期模式的抽取更差，导致大量波动。在 (f) 中，只微调归一化层比冻结显著改善性能，印证了两个预测器之间协同学习的收益。最后，(g) 表明去掉回溯残差机制会造成显著的性能下降，确认了它在有效分解中的作用。总体而言，大型视觉模型的解码器、融合策略、掩码方法、训练方式与分解机制，都是 DMMV-A 成功的关键。">
+          In (a), replacing the linear numerical forecaster with a Transformer slightly degrades
+          performance, likely due to the increased difficulty of jointly training a Transformer with
+          LVMs. In (b), <code>MAE</code> outperforms <code>SimMIM</code> as the visual forecaster,
+          likely due to its ViT-based reconstruction decoder being better suited for pixel-level tasks
+          like LTSF than <code>SimMIM</code>'s linear decoder, while both models share similar encoder
+          architectures. In (c), gate-based fusion outperforms simple summation, highlighting its
+          adaptability to the distinct outputs of the two forecasters. (d) and (e) underscore the
+          importance of BCMask: removing it recovers the full look-back window as the backcasted
+          seasonal component, diminishing the trend signal and weakening the numerical forecaster,
+          while random masking performs slightly worse due to poorer periodic pattern extraction,
+          which leads to many fluctuations. In (f), fine-tuning only the norm layers significantly
+          improves performance over freezing, confirming the benefit of coordinated learning between
+          forecasters. Finally, (g) shows that removing the backcast-residual mechanism causes a major
+          performance drop, affirming its role in effective decomposition.
+        </p>
+      </div>
+
+      <div>
+        <div class="tablewrap">
+          <table class="data" id="ablation-table"><thead></thead><tbody></tbody></table>
+        </div>
+        <p class="note" data-zh="MSE 与 MAE 在不同预测步长上取平均，越低越好。“变化”为每个消融相对于 DMMV-A 的改善幅度，正值表示更好。">
+          MSE and MAE are averaged over different prediction lengths; lower is better.
+          <b>Improvement</b> of each ablation is relative to DMMV-A, where a positive value is better.
+        </p>
+      </div>
+
+      <h3 class="sub" data-zh="门把权重放在了哪里">Where the gate puts its weight</h3>
+
+      <div class="prose">
+        <p data-zh="基于门的融合的一个关键优势是可解释性。下图给出了跨数据集的平均门权重：DMMV-A 始终把更多权重放在视觉预测器上，而 DMMV-S 倾向于在两者之间取得平衡，但更偏向数值预测器。在 DMMV-A 中，这些权重是依据预测性能学得的，凸显了视觉预测器的重要性。值得注意的是，尽管数值预测器获得的权重较小，它依然不可或缺——这一点由 DMMV-A 优于纯视觉基线 VisionTS 所佐证。相比之下，DMMV-S 的权重受制于其固定的移动平均分解，导致预测角色的分配既不自适应也不理想。">
+          A key advantage of the gate-based fusion is its interpretability. The chart below presents
+          average gate weights across datasets: DMMV-A consistently places more weight on the visual
+          forecaster, while DMMV-S tends to balance both forecasters but leans toward the numerical
+          one. In DMMV-A, these weights are learned based on forecasting performance, emphasizing the
+          visual forecaster's importance. Notably, although the numerical forecaster receives less
+          weight, it remains essential — as evidenced by DMMV-A outperforming the visual-only baseline
+          <code>VisionTS</code> in the table above. In contrast, DMMV-S's weights are limited by its
+          fixed moving-average decomposition, leading to a non-adaptive and suboptimal allocation of
+          forecasting roles.
+        </p>
+        <p data-zh="下面的例子给出了 DMMV-S 与 DMMV-A 的分解结果。DMMV-A 产生了一条平滑、清晰的周期分量——与预期一致，以及一条带些许噪声的趋势分量。相比之下，DMMV-S 的移动平均通过吸收波动得到更平滑的趋势，却把噪声推给了季节分量；这让视觉预测器更难预测，因为它比数值预测器对波动更敏感，从而导致视觉预测器在门权重上更低。由于周期模式对长期预测至关重要，DMMV-A 中更清晰的周期分离带来了与真值吻合得更好的预测。">
+          The example below provides decompositions by DMMV-S and DMMV-A. DMMV-A produces a smooth,
+          clearly periodic component — consistent with expectations — and a trend component with some
+          noises. In contrast, DMMV-S's moving-average yields a smoother trend by absorbing
+          fluctuations, pushing noise into the seasonal component. This makes forecasting harder for
+          the visual forecaster, which is more sensitive to fluctuations than the numerical one,
+          resulting in its lower gate weights. Since periodic patterns are crucial for long-term
+          forecasting, the clearer period separation in DMMV-A leads to forecasts that better match the
+          ground truth.
+        </p>
+      </div>
+
+      <figure>
+        <div class="plate">
+          <img src="assets/fig6.png" alt="Bar chart comparing DMMV-S and DMMV-A gate weights on the visual and numerical forecasters.">
+        </div>
+        <figcaption data-zh="比较 DMMV-S 与 DMMV-A 在视觉预测器与数值预测器上的门权重。">
+          Comparing DMMV-S and DMMV-A with respect to gate weights on visual and numerical forecasters.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <div class="plate">
+          <img src="assets/fig7.png" alt="Forecasts, seasonal components and trend components of DMMV-S and DMMV-A on the same ETTh1 example.">
+        </div>
+        <figcaption data-zh="DMMV-S 与 DMMV-A 在 ETTh1 同一个例子上的分解：(a)(d) 输入时间序列与预测，(b)(e) 季节分量，(c)(f) 趋势分量。">
+          The decompositions of DMMV-S and DMMV-A on the same example in ETTh1: (a) and (d) input time
+          series and forecasts, (b) and (e) seasonal component, (c) and (f) trend component.
+        </figcaption>
+      </figure>
+
+      <h3 class="sub" data-zh="回看窗口的影响">The impact of the look-back window</h3>
+
+      <div class="prose">
+        <p data-zh="下图把 DMMV-A 与一个视觉预测器（VisionTS）以及两个数值预测器（PatchTST、DLinear）作比较，后三者可视为它的单视图消融。Illness 数据集因序列过短（共 966 个时间步）而被排除。以 MAE 为指标，我们观察到 DMMV-A 与 VisionTS 都从更长的回看窗口中获益，而 PatchTST 与 DLinear 在长度超过 336 后开始退化。值得注意的是，DMMV-A 在长度 1152 处优于 VisionTS，凸显了显式建模全局趋势的优势。">
+          The plots below compare DMMV-A with a visual forecaster, <code>VisionTS</code>, and two
+          numerical forecasters, <code>PatchTST</code> and <code>DLinear</code>, which can serve as its
+          single-view ablations. The Illness dataset is excluded due to its short time series, 966 time
+          steps in total. Using the MAE metric, we observe that DMMV-A and <code>VisionTS</code> benefit
+          from longer look-back windows, while <code>PatchTST</code> and <code>DLinear</code> degrade
+          beyond a length of 336. Notably, DMMV-A outperforms <code>VisionTS</code> at length 1152,
+          highlighting the advantage of explicitly modeling global trends.
+        </p>
+      </div>
+
+      <figure>
+        <div class="plate">
+          <img src="assets/fig9.png" alt="Average MAE of PatchTST, DLinear, VisionTS and DMMV-A under varying context lengths.">
+        </div>
+        <figcaption data-zh="不同回看窗口（上下文）长度下的平均 MAE 比较。">
+          Average MAE comparison with varying look-back window, or context, lengths.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="cite">
+  <div class="band-inner">
+    <div class="band-label" data-zh="引用">Citation</div>
+    <div class="band-body">
+      <h2 data-zh="引用本文">Cite this work</h2>
+      <div class="cite">
+        <div class="cite-head">
+          BibTeX
+          <button class="copy" id="copy-bib" data-zh="复制">Copy</button>
+        </div>
+<pre id="bibtex">@inproceedings{shen2025dmmv,
+  title     = {Multi-Modal View Enhanced Large Vision Models for Long-Term Time Series Forecasting},
+  author    = {Shen, ChengAo and Yu, Wenchao and Zhao, Ziming and Song, Dongjin and Cheng, Wei and Chen, Haifeng and Ni, Jingchao},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2025}
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="footer-mark">DMMV</div>
+      <p data-zh="NeurIPS 2025 · 休斯敦大学 D2I 组">
+        NeurIPS 2025 · D2I Group, University of Houston
+      </p>
+      <p class="footer-contact">
+        <a href="mailto:cshen9@uh.edu">cshen9@uh.edu</a> ·
+        <a href="https://github.com/D2I-Group/dmmv/issues" data-zh="提交 issue">Open an issue</a>
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <div>
+        <h3 data-zh="论文">Paper</h3>
+        <ul>
+          <li><a href="https://arxiv.org/abs/2505.24003">arXiv:2505.24003</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 data-zh="代码">Code</h3>
+        <ul>
+          <li><a href="https://github.com/D2I-Group/dmmv">GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-related">
+      <h3 data-zh="D2I 组的其他工作">More from the D2I Group</h3>
+      <ul class="related">
+        <li>
+          <a href="https://d2i-group.github.io/metacaster/">MetaCaster: Meta-Harness-Optimized Agent for End-to-End Few-Shot Learning of Lightweight Time Series Forecasters</a>
+          <span class="meta">EMNLP 2026 · <a href="https://arxiv.org/abs/2608.23473">arXiv:2608.23473</a> · <a href="https://github.com/D2I-Group/metacaster">GitHub</a></span>
+        </li>
+        <li>
+          <a href="https://github.com/D2I-Group/awesome-vision-time-series">Harnessing Vision Models for Time Series Analysis: A Survey</a>
+          <span class="meta">IJCAI 2025 · <a href="https://www.arxiv.org/abs/2502.08869">arXiv:2502.08869</a></span>
+        </li>
+        <li>
+          <a href="https://github.com/D2I-Group/matmcd">Exploring Multi-Modal Data with Tool-Augmented LLM Agents for Precise Causal Discovery</a>
+          <span class="meta"><a href="https://arxiv.org/abs/2412.13667">arXiv:2412.13667</a></span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<script src="static/js/core.js"></script>
+<script src="static/js/main.js"></script>
+</body>
+</html>
